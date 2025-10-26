@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { RoleEmulator } from "@/components/role-emulator"
-import ParcelLockerSchema from "@/components/parcel-locker-schema"
+import { ParcelLockerSchema } from "@/components/parcel-locker-schema"
 import { TestQueue } from "@/components/test-queue"
 import { LogsPanel } from "@/components/logs-panel"
 import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from "@/components/ui/resizable"
@@ -12,6 +12,8 @@ import { Button } from "@/components/ui/button"
 function TestInterfaceContent() {
   const [logs, setLogs] = useState<any[]>([])
   const [currentTest, setCurrentTest] = useState<any>(null)
+  const [currentMode, setCurrentMode] = useState<"create" | "run">("create")
+  const [activeTab, setActiveTab] = useState<string>("client")
   const { language, setLanguage, t } = useLanguage()
 
   const addLog = (log: any) => {
@@ -39,13 +41,18 @@ function TestInterfaceContent() {
 
       <ResizablePanelGroup direction="horizontal" className="h-[calc(100vh-88px)]">
         <ResizablePanel defaultSize={40} minSize={30}>
-          <RoleEmulator addLog={addLog} currentTest={currentTest} />
+          <RoleEmulator
+            addLog={addLog}
+            currentTest={currentTest}
+            onModeChange={setCurrentMode}
+            onTabChange={setActiveTab}
+          />
         </ResizablePanel>
 
         <ResizableHandle withHandle />
 
         <ResizablePanel defaultSize={25} minSize={20}>
-          <ParcelLockerSchema />
+          <ParcelLockerSchema mode={currentMode} activeTab={activeTab} addLog={addLog} />
         </ResizablePanel>
 
         <ResizableHandle withHandle />

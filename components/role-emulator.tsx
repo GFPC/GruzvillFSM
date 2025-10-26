@@ -12,7 +12,7 @@ import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import FSMEmulator from "@/components/fsm-emulator"
+import { FSMEmulator } from "@/components/fsm-emulator"
 import { useLanguage } from "@/lib/language-context"
 import {
   mockLockers,
@@ -28,10 +28,16 @@ import {
 interface RoleEmulatorProps {
   addLog: (log: any) => void
   currentTest: any
+  onModeChange?: (mode: "create" | "run") => void
+  onTabChange?: (tab: string) => void
 }
 
-export function RoleEmulator({ addLog, currentTest }: RoleEmulatorProps) {
+export function RoleEmulator({ addLog, currentTest, onModeChange, onTabChange }: RoleEmulatorProps) {
   const [mode, setMode] = useState<"create" | "run">("create")
+  const [selectedClientId, setSelectedClientId] = useState<string>("1001")
+  const [selectedRecipientId, setSelectedRecipientId] = useState<string>("2001")
+  const [selectedCourierId, setSelectedCourierId] = useState<string>("100")
+  const [selectedDriverId, setSelectedDriverId] = useState<string>("200")
 
   const [clientOrders, setClientOrders] = useState<
     Array<{
@@ -511,10 +517,15 @@ export function RoleEmulator({ addLog, currentTest }: RoleEmulatorProps) {
 
   const progress = totalSteps > 0 ? ((currentStep + 1) / totalSteps) * 100 : 0
 
+  const handleModeChange = (newMode: "create" | "run") => {
+    setMode(newMode)
+    onModeChange?.(newMode)
+  }
+
   return (
     <div className="h-full flex flex-col overflow-hidden">
       <div className="p-4 border-b border-border bg-card">
-        <RadioGroup value={mode} onValueChange={(v) => setMode(v as "create" | "run")} className="flex gap-4">
+        <RadioGroup value={mode} onValueChange={handleModeChange} className="flex gap-4">
           <div className="flex items-center space-x-2">
             <RadioGroupItem value="create" id="create" />
             <Label htmlFor="create">{t.modes.create}</Label>
@@ -611,7 +622,11 @@ export function RoleEmulator({ addLog, currentTest }: RoleEmulatorProps) {
         )}
       </div>
 
-      <Tabs defaultValue="client" className="flex-1 flex flex-col overflow-hidden">
+      <Tabs
+        defaultValue="client"
+        className="flex-1 flex flex-col overflow-hidden"
+        onValueChange={(value) => onTabChange?.(value)}
+      >
         <TabsList className="w-full justify-start px-4 pt-2 bg-background">
           <TabsTrigger
             value="client"
@@ -658,6 +673,24 @@ export function RoleEmulator({ addLog, currentTest }: RoleEmulatorProps) {
                 <CardTitle>{t.client.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
+                {mode === "create" && (
+                  <div>
+                    <Label htmlFor="client-user-id">{t.client.userId}</Label>
+                    <Select value={selectedClientId} onValueChange={setSelectedClientId}>
+                      <SelectTrigger id="client-user-id">
+                        <SelectValue placeholder={t.client.selectUserId} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[1001, 1002, 1003, 1004, 1005].map((id) => (
+                          <SelectItem key={id} value={id.toString()}>
+                            {language === "ru" ? "Клиент" : "Client"} #{id}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 {createdOrderId && (
                   <div>
                     <Badge variant="default" className="bg-green-600">
@@ -823,6 +856,24 @@ export function RoleEmulator({ addLog, currentTest }: RoleEmulatorProps) {
                   </div>
                 </div>
 
+                {mode === "create" && (
+                  <div>
+                    <Label htmlFor="recipient-user-id">{t.recipient.userId}</Label>
+                    <Select value={selectedRecipientId} onValueChange={setSelectedRecipientId}>
+                      <SelectTrigger id="recipient-user-id">
+                        <SelectValue placeholder={t.recipient.selectUserId} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[2001, 2002, 2003, 2004, 2005].map((id) => (
+                          <SelectItem key={id} value={id.toString()}>
+                            {language === "ru" ? "Получатель" : "Recipient"} #{id}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div className="space-y-3">
                   <div>
                     <Label htmlFor="recipient-order-id">{t.recipient.orderId}</Label>
@@ -931,6 +982,24 @@ export function RoleEmulator({ addLog, currentTest }: RoleEmulatorProps) {
                 <CardTitle>{t.courier.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {mode === "create" && (
+                  <div>
+                    <Label htmlFor="courier-id">{t.courier.courierId}</Label>
+                    <Select value={selectedCourierId} onValueChange={setSelectedCourierId}>
+                      <SelectTrigger id="courier-id">
+                        <SelectValue placeholder={t.courier.selectCourierId} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {mockCouriers.map((courier) => (
+                          <SelectItem key={courier.id} value={courier.id.toString()}>
+                            {courier.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div>
                   <h3 className="font-semibold mb-3">{t.courier.availableOrders}</h3>
                   <div className="border rounded-lg overflow-hidden">
@@ -1036,6 +1105,24 @@ export function RoleEmulator({ addLog, currentTest }: RoleEmulatorProps) {
                 <CardTitle>{t.driver.title}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
+                {mode === "create" && (
+                  <div>
+                    <Label htmlFor="driver-id">{t.driver.driverId}</Label>
+                    <Select value={selectedDriverId} onValueChange={setSelectedDriverId}>
+                      <SelectTrigger id="driver-id">
+                        <SelectValue placeholder={t.driver.selectDriverId} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[200, 201, 202, 203, 204].map((id) => (
+                          <SelectItem key={id} value={id.toString()}>
+                            {language === "ru" ? "Водитель" : "Driver"} #{id}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
                 <div>
                   <h3 className="font-semibold mb-3">{t.driver.tripExchange}</h3>
                   <div className="border rounded-lg overflow-hidden">
